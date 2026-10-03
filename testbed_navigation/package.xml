@@ -8,7 +8,7 @@
     Provides individual launch files for map loading, AMCL localization,
     and full navigation using Nav2 plugins — without using nav2_bringup directly.
   </description>
-  <maintainer email="your-email@example.com">Your Full Name</maintainer>
+  <maintainer email="toshalkumbhar8979@gmail.com">Toshal Kumbhar</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

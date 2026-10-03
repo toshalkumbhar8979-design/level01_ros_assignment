@@ -166,6 +166,6 @@ All Nav2 nodes are managed by `lifecycle_manager` with `autostart: true`. This i
 
 ## Contact Information
 
-- **Name:** Your Full Name
-- **Contact Number:** Your contact number
-- **Email:** your-email@example.com
+- **Name:** Toshal Kumbhar
+- **Contact Number:** +91 8446268979
+- **Email:** toshalkumbhar8979@gmail.com
