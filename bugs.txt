@@ -1,0 +1,141 @@
+================================================================================
+BUGS IDENTIFIED AND FIXED IN THE TESTBED-T1.0.0 STARTER CODE
+================================================================================
+
+Author: Toshal Kumbhar
+Date:   02-Oct-2026
+
+--------------------------------------------------------------------------------
+BUG 1 — Wrong image path in testbed_world.yaml
+--------------------------------------------------------------------------------
+File:     testbed_bringup/maps/testbed_world.yaml
+Line:     1
+
+Description:
+  The map YAML file contained an obviously incorrect image filename
+  "wrong_path_testbed_world.pgm" instead of the actual map image filename
+  "testbed_world.pgm" that resides in the same maps/ directory.
+
+Original code:
+  image: wrong_path_testbed_world.pgm
+
+Fix applied:
+  image: testbed_world.pgm
+
+Impact:
+  The map_server would fail to load the occupancy-grid map because the PGM
+  file could not be found, causing localization (AMCL) and navigation to be
+  completely non-functional.
+
+--------------------------------------------------------------------------------
+BUG 2 — Malformed XML tag in testbed.gazebo (IMU plugin)
+--------------------------------------------------------------------------------
+File:     testbed_description/urdf/testbed.gazebo
+Line:     40
+
+Description:
+  The closing angle-bracket '>' of the <initial_orientation_as_reference>
+  element was duplicated, resulting in an extra stray '>' character that makes
+  the XML invalid and unparseable by xacro/robot_state_publisher.
+
+Original code:
+  <initial_orientation_as_reference>false</initial_orientation_as_reference>>
+
+Fix applied:
+  <initial_orientation_as_reference>false</initial_orientation_as_reference>
+
+Impact:
+  xacro processing would abort with an XML parse error, preventing the entire
+  robot description from being published. This would cause robot_state_publisher
+  to crash and no TF frames would be broadcast, breaking the entire simulation.
+
+--------------------------------------------------------------------------------
+BUG 3 — Missing parentheses on ament_package() call in testbed_description/CMakeLists.txt
+--------------------------------------------------------------------------------
+File:     testbed_description/CMakeLists.txt
+Line:     23
+
+Description:
+  The mandatory CMake macro call `ament_package()` was written without its
+  parentheses as `ament_package`, making it a no-op variable reference
+  rather than a function call. CMake silently ignores unknown identifiers
+  in some contexts, so this may not always produce an explicit error but
+  the package will not be properly registered with the ament build system.
+
+Original code:
+  ament_package
+
+Fix applied:
+  ament_package()
+
+Impact:
+  The testbed_description package would not be correctly exported, so
+  downstream packages (testbed_gazebo, testbed_bringup, testbed_navigation)
+  that depend on it via find_package() would fail to locate it, preventing
+  the workspace from building.
+
+--------------------------------------------------------------------------------
+BUG 4 — Robot spawned outside the world bounds (Y = 5.0 m) in spawn_testbed.launch.py
+--------------------------------------------------------------------------------
+File:     testbed_gazebo/launch/spawn_testbed.launch.py
+Line:     15
+
+Description:
+  The initial spawn position of the robot was set to Y = 5.0 m. The
+  testbed_playground.world is a box room of limited size, and spawning
+  the robot at Y = 5.0 m places it either outside the room walls or
+  partially embedded in a wall, causing physics instability and preventing
+  the robot from navigating properly.
+
+Original code:
+  position = [0.0, 5.0, 0.0]
+
+Fix applied:
+  position = [0.0, 0.0, 0.05]
+
+  (Z raised slightly to 0.05 m to prevent the robot from clipping into
+   the ground plane on spawn.)
+
+Impact:
+  The robot would either spawn outside the navigable area or collide with
+  world geometry immediately, making any navigation testing impossible.
+
+--------------------------------------------------------------------------------
+BUG 5 — Missing 'maps' directory in testbed_bringup CMakeLists.txt install targets
+--------------------------------------------------------------------------------
+File:     testbed_bringup/CMakeLists.txt
+Lines:    27-32
+
+Description:
+  The install() directive only installs the 'launch' directory. The 'maps'
+  directory containing testbed_world.yaml and testbed_world.pgm is never
+  installed to the share directory of the package. Any launch file that
+  tries to resolve the map path via get_package_share_directory() will not
+  find the map files.
+
+Original code:
+  install(
+    DIRECTORY
+      launch
+    DESTINATION
+      share/${PROJECT_NAME}/
+  )
+
+Fix applied:
+  install(
+    DIRECTORY
+      launch
+      maps
+    DESTINATION
+      share/${PROJECT_NAME}/
+  )
+
+Impact:
+  The map files would not be accessible at runtime via the ROS2 package
+  resource system, so map_server launched from a launch file using
+  get_package_share_directory('testbed_bringup') would fail to find
+  the .yaml and .pgm files.
+
+================================================================================
+END OF BUG REPORT
+================================================================================

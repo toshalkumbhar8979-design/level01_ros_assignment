@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  ros2_nav:
+    build: .
+    container_name: testbed_navigation_env
+    volumes:
+      # Mount the current directory into the container's src folder
+      - .:/workspace/src/level01_ros_assignment
+    ports:
+      - "8080:8080"
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    command: /bin/bash
