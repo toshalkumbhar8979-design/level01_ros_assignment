@@ -1,0 +1,74 @@
+# amcl_params.yaml
+# -----------------
+# AMCL (Adaptive Monte Carlo Localization) configuration for the Testbed-T1.0.0.
+#
+# The robot uses a 2D lidar (scan topic) and differential-drive odometry.
+# Key tuning decisions:
+#   - Particle count balanced between accuracy and CPU load for a small room.
+#   - Laser model uses likelihood_field (faster than beam model for indoor use).
+#   - Odometry model: diff-corrected accounts for systematic wheel slip errors.
+
+amcl:
+  ros__parameters:
+    use_sim_time: true
+
+    # ── Particle filter ────────────────────────────────────────────────────────
+    min_particles: 500
+    max_particles: 2000
+    pf_err: 0.05          # Acceptable error in KLD sampling
+    pf_z: 0.99            # Upper quantile for KLD sampling
+
+    # ── Resampling ─────────────────────────────────────────────────────────────
+    resample_interval: 1
+
+    # ── Spatial filter (alpha) ─────────────────────────────────────────────────
+    # Controls how much the filter adapts when the robot moves vs stays still.
+    alpha1: 0.2           # Rotation noise from rotation
+    alpha2: 0.2           # Rotation noise from translation
+    alpha3: 0.2           # Translation noise from translation
+    alpha4: 0.2           # Translation noise from rotation
+    alpha5: 0.1           # Strafe noise (usually 0 for diff-drive)
+
+    # ── Motion model ───────────────────────────────────────────────────────────
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+
+    # ── Laser model ────────────────────────────────────────────────────────────
+    laser_model_type: "likelihood_field"
+    laser_max_range: 1.5          # Match lidar max range in testbed.gazebo
+    laser_min_range: 0.10         # Match lidar min range in testbed.gazebo
+    max_beams: 60
+    laser_likelihood_max_dist: 0.2
+    z_hit: 0.5
+    z_rand: 0.5
+    sigma_hit: 0.2
+    z_short: 0.05
+    z_max: 0.05
+    lambda_short: 0.1
+
+    # ── Topics and frames ──────────────────────────────────────────────────────
+    scan_topic: scan          # Published by the lidar plugin (remapped to /scan)
+    base_frame_id: "base_footprint"
+    odom_frame_id: "odom"
+    global_frame_id: "map"
+
+    # ── TF publishing ──────────────────────────────────────────────────────────
+    tf_broadcast: true
+
+    # ── Initial pose ───────────────────────────────────────────────────────────
+    # Robot starts at origin of the world after fix of spawn position.
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+
+    # ── Update thresholds ──────────────────────────────────────────────────────
+    # Only run a filter update when the robot has moved enough to gather new info.
+    update_min_d: 0.2     # Linear distance (m) before update
+    update_min_a: 0.5     # Angular distance (rad) before update
+
+    # ── Recovery behaviour ─────────────────────────────────────────────────────
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+    save_pose_rate: 0.5
